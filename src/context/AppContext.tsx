@@ -116,6 +116,8 @@ interface AppContextType {
   dedicatedVendor: Vendor | null;
   enterDedicatedStore: (vendorIdOrSlug: string) => void;
   exitDedicatedStoreMode: () => void;
+  productionDomain: string;
+  setProductionDomain: (domain: string) => void;
   getStoreShareLinks: (vendor: Vendor) => { webUrl: string; telegramUrl: string };
   registerVendorSelf: (data: {
     nameKh: string;
@@ -581,11 +583,54 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  // Production Domain configuration (Defaults to Vercel production URL)
+  const [productionDomain, setProductionDomainState] = useState<string>(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('phsar24_production_domain');
+        if (stored) return stored;
+        // If current window is accessed on Vercel or custom domain, dynamically use it!
+        if (
+          window.location.origin.includes('vercel.app') ||
+          (!window.location.origin.includes('run.app') &&
+            !window.location.origin.includes('localhost') &&
+            !window.location.origin.includes('google'))
+        ) {
+          return window.location.origin;
+        }
+      }
+      return 'https://kaka-shop-miniapp.vercel.app';
+    } catch {
+      return 'https://kaka-shop-miniapp.vercel.app';
+    }
+  });
+
+  const setProductionDomain = (newDomain: string) => {
+    let clean = newDomain.trim();
+    if (!clean.startsWith('http://') && !clean.startsWith('https://')) {
+      clean = 'https://' + clean;
+    }
+    clean = clean.replace(/\/+$/, '');
+    setProductionDomainState(clean);
+    try {
+      localStorage.setItem('phsar24_production_domain', clean);
+    } catch {
+      // ignore
+    }
+  };
+
   const getStoreShareLinks = (vendor: Vendor) => {
-    let origin = typeof window !== 'undefined' ? window.location.origin : 'https://kaka-shop-miniapp.vercel.app';
-    // If running in Google AI Studio private dev environment, use the public standalone URL
-    if (origin.includes('aistudio.google.com') || origin.includes('ais-dev-')) {
-      origin = 'https://ais-pre-3crkstm7r5kqckgblfl2ll-491459478722.asia-southeast1.run.app';
+    let origin = productionDomain;
+    if (typeof window !== 'undefined') {
+      // If currently running directly on Vercel or production domain, use window.location.origin
+      if (
+        window.location.origin.includes('vercel.app') ||
+        (!window.location.origin.includes('run.app') &&
+          !window.location.origin.includes('localhost') &&
+          !window.location.origin.includes('google'))
+      ) {
+        origin = window.location.origin;
+      }
     }
     const webUrl = `${origin}?store=${vendor.slug}`;
     const botUser = (vendor.telegramUsername || 'kaka_gadgets_bot').replace('@', '');
@@ -2898,6 +2943,8 @@ ${topPicks.length > 0 ? topPicks.join('\n') : '• ឱសថបុរាណធ�
         dedicatedVendor,
         enterDedicatedStore,
         exitDedicatedStoreMode,
+        productionDomain,
+        setProductionDomain,
         getStoreShareLinks,
         registerVendorSelf,
         products,

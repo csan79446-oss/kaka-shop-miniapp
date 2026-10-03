@@ -43,6 +43,7 @@ export const ProductCatalog: React.FC = () => {
     setSelectedVendorId,
     getVendorById,
     getStoreShareLinks,
+    productionDomain,
     setActiveTab,
     isDedicatedStoreMode,
     exitDedicatedStoreMode,
@@ -153,9 +154,16 @@ export const ProductCatalog: React.FC = () => {
   };
 
   const handleShareMarketplace = () => {
-    let origin = typeof window !== 'undefined' ? window.location.origin : 'https://kaka-shop.app';
-    if (origin.includes('aistudio.google.com') || origin.includes('ais-dev-')) {
-      origin = 'https://ais-pre-3crkstm7r5kqckgblfl2ll-491459478722.asia-southeast1.run.app';
+    let origin = productionDomain;
+    if (typeof window !== 'undefined') {
+      if (
+        window.location.origin.includes('vercel.app') ||
+        (!window.location.origin.includes('run.app') &&
+          !window.location.origin.includes('localhost') &&
+          !window.location.origin.includes('google'))
+      ) {
+        origin = window.location.origin;
+      }
     }
     const marketUrl = origin;
     const shareMessage = `🛍️ សូមស្វាគមន៍មកកាន់ផ្សារអនឡាញ KAKA Marketplace!
