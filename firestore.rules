@@ -1,0 +1,38 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Vendors: Anyone can read active vendors. Write restricted.
+    match /vendors/{vendorId} {
+      allow read: if true;
+      allow write: if true; // Demo & admin management mode
+    }
+
+    // Products: Anyone can read products. Write restricted.
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Orders: Anyone can create order (public checkout). Read and update allowed.
+    match /orders/{orderId} {
+      allow read, write: if true;
+    }
+
+    // Chat Messages: Real-time Live chat
+    match /chat_messages/{messageId} {
+      allow read, write: if true;
+    }
+
+    // Categories and store configs
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

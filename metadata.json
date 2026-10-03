@@ -1,0 +1,6 @@
+{
+  "name": "KAKA Shop - Telegram MiniApp",
+  "description": "កម្មវិធី Telegram MiniApp KAKA Shop សម្រាប់បញ្ជាទិញទំនិញតាមការជជែកផ្ទាល់ គ្រប់គ្រងផលិតផល និងផ្ទាំងស្ថិតិលក់ជាក់ស្តែង",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

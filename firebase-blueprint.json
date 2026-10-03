@@ -1,0 +1,119 @@
+{
+  "entities": {
+    "Vendor": {
+      "title": "Vendor",
+      "description": "Marketplace vendor/store profile",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nameKh": { "type": "string" },
+        "nameEn": { "type": "string" },
+        "slug": { "type": "string" },
+        "logo": { "type": "string" },
+        "banner": { "type": "string" },
+        "descriptionKh": { "type": "string" },
+        "descriptionEn": { "type": "string" },
+        "ownerName": { "type": "string" },
+        "ownerPhone": { "type": "string" },
+        "ownerEmail": { "type": "string" },
+        "telegramUsername": { "type": "string" },
+        "addressKh": { "type": "string" },
+        "addressEn": { "type": "string" },
+        "city": { "type": "string" },
+        "category": { "type": "string" },
+        "rating": { "type": "number" },
+        "reviewCount": { "type": "number" },
+        "isVerified": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["active", "pending", "suspended"] },
+        "commissionRate": { "type": "number" },
+        "bankName": { "type": "string" },
+        "bankAccountName": { "type": "string" },
+        "bankAccountNumber": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "nameKh", "nameEn", "status"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Products available in marketplace",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "vendorId": { "type": "string" },
+        "nameKh": { "type": "string" },
+        "nameEn": { "type": "string" },
+        "descriptionKh": { "type": "string" },
+        "descriptionEn": { "type": "string" },
+        "price": { "type": "number" },
+        "originalPrice": { "type": "number" },
+        "image": { "type": "string" },
+        "video": { "type": "string" },
+        "category": { "type": "string" },
+        "stock": { "type": "number" },
+        "badge": { "type": "string", "enum": ["hot", "sale", "new", "featured"] },
+        "colors": { "type": "string" },
+        "sizes": { "type": "string" },
+        "rating": { "type": "number" },
+        "reviewCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "nameKh", "nameEn", "price", "stock", "category"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer purchase orders",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "orderNumber": { "type": "string" },
+        "vendorId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "customerAddress": { "type": "string" },
+        "telegramUsername": { "type": "string" },
+        "totalAmount": { "type": "number" },
+        "currency": { "type": "string", "enum": ["USD", "KHR"] },
+        "paymentMethod": { "type": "string", "enum": ["aba", "acleda", "khqr", "cod"] },
+        "paymentStatus": { "type": "string", "enum": ["unpaid", "paid", "verified"] },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "processing", "delivering", "completed", "cancelled"] },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "orderNumber", "customerName", "customerPhone", "totalAmount", "status"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "Live chat and inquiry messages",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "sender": { "type": "string", "enum": ["customer", "agent", "bot"] },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["sent", "delivered", "read"] }
+      },
+      "required": ["id", "sender", "text", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/vendors/{vendorId}": {
+      "schema": "Vendor",
+      "description": "Marketplace vendor directory"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Marketplace products catalog"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer orders collection"
+    },
+    "/chat_messages/{messageId}": {
+      "schema": "ChatMessage",
+      "description": "Customer live chat stream"
+    }
+  }
+}

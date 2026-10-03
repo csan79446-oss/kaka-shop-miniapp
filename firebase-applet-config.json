@@ -1,0 +1,12 @@
+{
+  "projectId": "khmer-tts-reader",
+  "appId": "1:691144894205:web:3f88ca09655476c6088094",
+  "apiKey": "AIzaSyAddR0yyMXDBj1uTk0AoOHWXrW0QdRaOJw",
+  "authDomain": "khmer-tts-reader.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-kakashoptelegram-216c7c4a-8382-4c65-a28a-bf13f96cc818",
+  "storageBucket": "khmer-tts-reader.firebasestorage.app",
+  "messagingSenderId": "691144894205",
+  "measurementId": "",
+  "oAuthClientId": "691144894205-fch05k15vtbn3pdvin44tq7tojkml594.apps.googleusercontent.com",
+  "recaptchaSiteKey": ""
+}
