@@ -20,9 +20,9 @@ export const EXCHANGE_RATE_KHR = 4100; // 1 USD = 4,100 KHR
 export const INITIAL_VENDORS: Vendor[] = [
   {
     id: 'vendor-01',
-    nameKh: 'Phsar24 Official Gadgets (ផ្សារ២៤ ហ្គាដជេត)',
-    nameEn: 'Phsar24 Official Gadgets & Tech',
-    slug: 'phsar24-gadgets',
+    nameKh: 'KAKA Gadgets (ផ្សារ២៤ ហ្គាដជេត)',
+    nameEn: 'KAKA Official Gadgets & Tech',
+    slug: 'kaka-gadgets',
     logo: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=160&auto=format&fit=crop&q=80',
     banner: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=800&auto=format&fit=crop&q=80',
     descriptionKh: 'ហាងលក់នាឡិកាឆ្លាតវៃ កាសប៊្លូធូស និងឧបករណ៍អេឡិចត្រូនិកទំនើបគុណភាពខ្ពស់ ធានា ១ ឆ្នាំពេញ។',
@@ -30,7 +30,7 @@ export const INITIAL_VENDORS: Vendor[] = [
     ownerName: 'សុខ វិបុល (Sok Vibol)',
     ownerPhone: '+855 12 889 977',
     ownerEmail: 'vibol@phsar24.app',
-    telegramUsername: 'phsar24_admin',
+    telegramUsername: 'kaka_gadgets_bot',
     addressKh: 'ផ្ទះលេខ #168E, ផ្លូវ 271, សង្កាត់បឹងទំពុន, ខណ្ឌមានជ័យ, រាជធានីភ្នំពេញ',
     addressEn: '#168E, Street 271, Sangkat Boeng Tumpun, Khan Meanchey, Phnom Penh',
     city: 'Phnom Penh',

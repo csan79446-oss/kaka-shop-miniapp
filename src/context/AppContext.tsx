@@ -520,10 +520,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Auto-activate dedicated vendor when slug matches
   useEffect(() => {
     if (dedicatedVendorSlug && vendors.length > 0) {
+      const cleanSlug = dedicatedVendorSlug.toLowerCase().trim();
       const matched = vendors.find(
         (v) =>
-          v.id.toLowerCase() === dedicatedVendorSlug.toLowerCase() ||
-          v.slug.toLowerCase() === dedicatedVendorSlug.toLowerCase()
+          v.id.toLowerCase() === cleanSlug ||
+          v.slug.toLowerCase() === cleanSlug ||
+          ((cleanSlug.includes('kaka') || cleanSlug.includes('gadget')) &&
+            (v.slug.includes('gadget') || v.slug.includes('kaka'))) ||
+          (cleanSlug.includes('phsar24-gadgets') &&
+            (v.slug.includes('gadget') || v.slug.includes('kaka'))) ||
+          (cleanSlug.includes('herbal') && v.slug.includes('herbal')) ||
+          (cleanSlug.includes('fashion') && v.slug.includes('fashion'))
       );
       if (matched) {
         setSelectedVendorId(matched.id);
@@ -538,10 +545,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       : null;
 
   const enterDedicatedStore = (vendorIdOrSlug: string) => {
+    const clean = vendorIdOrSlug.toLowerCase().trim();
     const matched = vendors.find(
       (v) =>
-        v.id.toLowerCase() === vendorIdOrSlug.toLowerCase() ||
-        v.slug.toLowerCase() === vendorIdOrSlug.toLowerCase()
+        v.id.toLowerCase() === clean ||
+        v.slug.toLowerCase() === clean ||
+        ((clean.includes('kaka') || clean.includes('gadget')) &&
+          (v.slug.includes('gadget') || v.slug.includes('kaka')))
     );
     if (matched) {
       setSelectedVendorId(matched.id);
@@ -572,14 +582,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const getStoreShareLinks = (vendor: Vendor) => {
-    let origin = typeof window !== 'undefined' ? window.location.origin : 'https://kaka-shop.app';
+    let origin = typeof window !== 'undefined' ? window.location.origin : 'https://kaka-shop-miniapp.vercel.app';
     // If running in Google AI Studio private dev environment, use the public standalone URL
-    // so outside users / store owners don't encounter Google Account 403 Permission Denied!
     if (origin.includes('aistudio.google.com') || origin.includes('ais-dev-')) {
       origin = 'https://ais-pre-3crkstm7r5kqckgblfl2ll-491459478722.asia-southeast1.run.app';
     }
     const webUrl = `${origin}?store=${vendor.slug}`;
-    const telegramUrl = `https://t.me/kaka_shop_bot/app?startapp=store_${vendor.slug}`;
+    const botUser = (vendor.telegramUsername || 'kaka_gadgets_bot').replace('@', '');
+    const telegramUrl = `https://t.me/${botUser}/app?startapp=store_${vendor.slug}`;
     return { webUrl, telegramUrl };
   };
 
