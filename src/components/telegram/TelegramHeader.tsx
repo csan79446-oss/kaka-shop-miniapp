@@ -39,9 +39,17 @@ export const TelegramHeader: React.FC = () => {
         {/* Brand Zone - constrained with flex-1 and min-w-0 to NEVER overflow or overlap */}
         <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
           <div className="relative shrink-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center font-extrabold text-xs sm:text-sm text-white border border-white/30 shadow-inner tracking-tighter">
-              P24
-            </div>
+            {isDedicatedStoreMode && dedicatedVendor?.logo ? (
+              <img
+                src={dedicatedVendor.logo}
+                alt={dedicatedVendor.nameKh}
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border border-white/40 shadow-xs"
+              />
+            ) : (
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center font-extrabold text-xs sm:text-sm text-white border border-white/30 shadow-inner tracking-tighter">
+                P24
+              </div>
+            )}
             <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-400 border-2 border-[#2481cc]"></div>
           </div>
 
@@ -57,13 +65,15 @@ export const TelegramHeader: React.FC = () => {
 
             <div className="text-[10px] sm:text-xs text-white/85 flex items-center gap-1.5 leading-tight mt-0.5 min-w-0 truncate">
               <span className="shrink-0 font-medium">
-                {language === 'km' ? 'ផ្សារអនឡាញផ្លូវការ' : 'Official Market'}
+                {isDedicatedStoreMode
+                  ? (language === 'km' ? 'ហាងផ្លូវការ' : 'Official Store')
+                  : (language === 'km' ? 'ផ្សារអនឡាញផ្លូវការ' : 'Official Market')}
               </span>
               <span className="text-white/50 shrink-0">·</span>
               <span className="text-emerald-200 font-medium shrink-0">Online 24/7</span>
               <span className="text-white/50 hidden sm:inline shrink-0">·</span>
               <span className="text-white/70 text-[10px] hidden sm:inline truncate">
-                📍 {storeInfo.city}
+                📍 {isDedicatedStoreMode && dedicatedVendor ? dedicatedVendor.city : storeInfo.city}
               </span>
             </div>
           </div>

@@ -284,8 +284,13 @@ export const ProductCatalog: React.FC = () => {
       product.nameEn.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.descriptionKh.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.descriptionEn.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Strict Merchant Isolation: In dedicated store mode, ONLY products belonging to this vendor can be shown
+    const effectiveVendorId =
+      isDedicatedStoreMode && dedicatedVendor ? dedicatedVendor.id : selectedVendorId;
     const matchesVendor =
-      selectedVendorId === 'all' || product.vendorId === selectedVendorId;
+      effectiveVendorId === 'all' ? true : product.vendorId === effectiveVendorId;
+
     return matchesCategory && matchesSearch && matchesVendor;
   });
 
@@ -371,20 +376,11 @@ export const ProductCatalog: React.FC = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShareModalVendor(dedicatedVendor)}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition-colors shadow-2xs"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition-colors shadow-2xs"
                 title={language === 'km' ? 'ចែករំលែក Link ហាង' : 'Share Store Link'}
               >
                 <Share2 className="w-3.5 h-3.5 text-[#2481cc]" />
-                <span className="hidden sm:inline">{language === 'km' ? 'ចែករំលែក' : 'Share'}</span>
-              </button>
-
-              <button
-                onClick={exitDedicatedStoreMode}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-[11px] font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors"
-                title={language === 'km' ? 'ចូលទៅកាន់ផ្សារធំរួម' : 'Go to Marketplace'}
-              >
-                <span>{language === 'km' ? 'ផ្សារធំរួម' : 'Marketplace'}</span>
-                <ChevronRight className="w-3 h-3" />
+                <span>{language === 'km' ? 'ចែករំលែក' : 'Share'}</span>
               </button>
             </div>
           </div>
