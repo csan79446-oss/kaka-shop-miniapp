@@ -599,9 +599,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return window.location.origin;
         }
       }
-      return 'https://kaka-shop-miniapp.vercel.app';
+      return 'https://phsar24.vercel.app';
     } catch {
-      return 'https://kaka-shop-miniapp.vercel.app';
+      return 'https://phsar24.vercel.app';
     }
   });
 

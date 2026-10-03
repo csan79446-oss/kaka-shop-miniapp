@@ -128,7 +128,7 @@ export const StoreShareModal: React.FC<StoreShareModalProps> = ({
                 type="text"
                 value={domainInput}
                 onChange={(e) => setDomainInput(e.target.value)}
-                placeholder="https://kaka-shop-miniapp.vercel.app"
+                placeholder="https://phsar24.vercel.app"
                 className="px-2 py-0.5 rounded bg-white dark:bg-slate-800 border border-blue-300 dark:border-blue-700 text-xs font-mono text-slate-800 dark:text-slate-200 focus:outline-none flex-1 min-w-0"
               />
             ) : (
