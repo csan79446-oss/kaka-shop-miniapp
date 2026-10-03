@@ -21,6 +21,8 @@ export interface Vendor {
   ownerPhone: string;
   ownerEmail?: string;
   telegramUsername: string;
+  telegramChatId?: string; // Telegram user/chat/group numeric ID for automated order alerts
+  telegramBotToken?: string; // Optional custom bot token if vendor has dedicated bot
   addressKh: string;
   addressEn: string;
   city: string;

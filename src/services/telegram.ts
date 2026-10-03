@@ -103,3 +103,21 @@ export const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | '
     }
   }
 };
+
+export const sendTelegramOrderAlert = async (params: {
+  botToken?: string;
+  chatId: string | number;
+  message: string;
+}) => {
+  try {
+    const res = await fetch('/api/telegram/notify-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    return await res.json();
+  } catch (err) {
+    console.error('Failed to dispatch telegram order alert:', err);
+    return null;
+  }
+};

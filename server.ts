@@ -29,6 +29,33 @@ if (apiKey) {
   }
 }
 
+// API Endpoint: Send instant Telegram notification to Merchant / Admin via Telegram Bot API
+app.post('/api/telegram/notify-order', async (req, res) => {
+  try {
+    const { botToken, chatId, message } = req.body;
+    const token = botToken || process.env.TELEGRAM_BOT_TOKEN;
+    if (!token || !chatId || !message) {
+      return res.status(400).json({ error: 'Missing token, chatId, or message' });
+    }
+
+    const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: 'HTML',
+      }),
+    });
+
+    const data = await response.json();
+    return res.json(data);
+  } catch (error: any) {
+    console.error('Telegram Bot Notification Error:', error);
+    return res.status(500).json({ error: error.message || 'Failed to send notification' });
+  }
+});
+
 // API endpoint for AI Smart Chat
 app.post('/api/chat', async (req, res) => {
   const {
