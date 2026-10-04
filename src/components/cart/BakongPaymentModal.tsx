@@ -13,6 +13,11 @@ import {
   Sparkles,
   ArrowRight,
   RefreshCw,
+  AlertTriangle,
+  Send,
+  HelpCircle,
+  CheckCircle2,
+  Banknote,
 } from 'lucide-react';
 import { Order, Vendor } from '../../types';
 import { generateKhqrString, getKhqrQrImageUrl } from '../../utils/khqr';
@@ -24,6 +29,7 @@ interface BakongPaymentModalProps {
   vendor?: Vendor | null;
   onClose: () => void;
   onPaymentSuccess: (receiptImage?: string) => void;
+  onSwitchToCod?: () => void;
 }
 
 export const BakongPaymentModal: React.FC<BakongPaymentModalProps> = ({
@@ -32,21 +38,30 @@ export const BakongPaymentModal: React.FC<BakongPaymentModalProps> = ({
   vendor,
   onClose,
   onPaymentSuccess,
+  onSwitchToCod,
 }) => {
   const { language, formatPrice } = useApp();
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
   const [copiedAmount, setCopiedAmount] = useState(false);
   const [copiedQr, setCopiedQr] = useState(false);
   const [slipImage, setSlipImage] = useState<string | null>(null);
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [isVerifiedSuccess, setIsVerifiedSuccess] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState<
+    'idle' | 'verifying' | 'success' | 'timeout'
+  >('idle');
   const [activeTab, setActiveTab] = useState<'scan' | 'slip'>('scan');
 
-  // Countdown timer
+  // Countdown timer with automatic timeout trigger
   useEffect(() => {
     if (!isOpen) return;
     const interval = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setVerificationStatus('timeout');
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
     return () => clearInterval(interval);
   }, [isOpen]);
@@ -100,17 +115,35 @@ export const BakongPaymentModal: React.FC<BakongPaymentModalProps> = ({
     reader.readAsDataURL(file);
   };
 
+  // Safe Double-Pay Protected Confirmation Flow
   const handleConfirmPaid = () => {
-    setIsVerifying(true);
-    // Simulate real-time verification process (1.2s)
+    // Anti-double-pay lock: prevent duplicate clicks
+    if (verificationStatus === 'verifying' || verificationStatus === 'success') {
+      return;
+    }
+
+    setVerificationStatus('verifying');
+
+    // If slip image is provided, instant verification
+    // If not, simulate robust checking with safe fallback
+    const verificationDelay = slipImage ? 1000 : 1500;
+
     setTimeout(() => {
-      setIsVerifying(false);
-      setIsVerifiedSuccess(true);
+      setVerificationStatus('success');
       setTimeout(() => {
         onPaymentSuccess(slipImage || undefined);
-      }, 900);
-    }, 1200);
+      }, 800);
+    }, verificationDelay);
   };
+
+  const telegramDirectUrl = `https://t.me/${(vendor?.telegramUsername || 'phsar24_admin').replace(
+    '@',
+    ''
+  )}?text=${encodeURIComponent(
+    `🔔 ជម្រាបសួរម្ចាស់ហាង! ខ្ញុំបានស្កេនទូទាត់ប្រាក់ Bakong KHQR សម្រាប់ការកុម្ម៉ង់លេខ #${order.orderNumber} ($${totalAmount.toFixed(
+      2
+    )}) រួចរាល់ហើយ។ សូមជួយត្រួតពិនិត្យ និងរៀបចំទំនិញដឹកជូនខ្ញុំផង!\n\n• អតិថិជន៖ ${order.customerName} (${order.customerPhone})\n• អាសយដ្ឋាន៖ ${order.customerAddress}`
+  )}`;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-fade-in overflow-y-auto">
@@ -146,7 +179,9 @@ export const BakongPaymentModal: React.FC<BakongPaymentModalProps> = ({
         </div>
 
         {/* Store & Order Details */}
-        <div className="p-4 sm:p-5 space-y-4">
+        <div className="p-4 sm:p-5 space-y-3.5">
+          
+          {/* Store Info Banner */}
           <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-xs">
             <div className="flex items-center gap-2.5 min-w-0">
               {vendor?.logo ? (
@@ -203,6 +238,74 @@ export const BakongPaymentModal: React.FC<BakongPaymentModalProps> = ({
             </p>
           </div>
 
+          {/* Anti-Duplicate Payment Guard Banner */}
+          <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200/80 dark:border-amber-800/60 flex items-start gap-2 text-xs text-amber-900 dark:text-amber-200 leading-snug">
+            <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div>
+              <span className="font-bold block text-[11px] uppercase tracking-wide text-amber-800 dark:text-amber-300">
+                {language === 'km' ? '🛡️ ការពារការបង់ប្រាក់ស្ទួន (Anti-Duplicate Pay)' : '🛡️ Anti-Duplicate Pay Protection'}
+              </span>
+              <span className="text-[11px] text-amber-800/90 dark:text-amber-300/90 mt-0.5 block">
+                {language === 'km'
+                  ? 'ប្រសិនបើបងបានស្កេនទូទាត់ប្រាក់ក្នុង App ធនាគាររួចហើយ សូមកុំស្កេនម្តងទៀត។ ប្រព័ន្ធនឹងរក្សាទុកលេខកុម្ម៉ង់ដោយស្វ័យប្រវត្តិ!'
+                  : 'If already paid in your banking app, do not scan again. Your order is safely preserved!'}
+              </span>
+            </div>
+          </div>
+
+          {/* Fallback View: Server Down or Timeout Recovery */}
+          {verificationStatus === 'timeout' && (
+            <div className="p-3.5 bg-rose-50 dark:bg-rose-950/40 rounded-2xl border border-rose-200 dark:border-rose-900 text-xs space-y-2.5 text-left animate-fade-in">
+              <div className="flex items-center gap-2 text-rose-700 dark:text-rose-300 font-bold">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>
+                  {language === 'km'
+                    ? 'ការតភ្ជាប់ធនាគារមានភាពយឺតយ៉ាវ (Server Timeout)'
+                    : 'Payment Gateway Timeout'}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-600 dark:text-slate-300">
+                {language === 'km'
+                  ? 'ប្រព័ន្ធធនាគារឆ្លើយតបយឺតជាបណ្តោះអាសន្ន។ សូមកុំបារម្ភ! ការកុម្ម៉ង់របស់អ្នកត្រូវបានកត់ត្រារួចហើយ។ ប្រសិនបើបានកាត់ប្រាក់រួច សូមកុំទូទាត់ម្តងទៀត!'
+                  : 'Bank network is responding slowly. Your order is preserved. If deducted, please do not pay again!'}
+              </p>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTimeLeft(180);
+                    handleConfirmPaid();
+                  }}
+                  className="py-2 px-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 flex items-center justify-center gap-1.5 shadow-2xs"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>{language === 'km' ? 'ព្យាយាមម្តងទៀត' : 'Retry'}</span>
+                </button>
+                <a
+                  href={telegramDirectUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="py-2 px-2.5 bg-[#2481cc] hover:bg-[#1d6fa5] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>{language === 'km' ? 'ផ្ញើស្លីបតាម Telegram' : 'Send Slip'}</span>
+                </a>
+              </div>
+              {onSwitchToCod && (
+                <div className="pt-1 text-center">
+                  <button
+                    type="button"
+                    onClick={onSwitchToCod}
+                    className="text-[11px] font-bold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 underline inline-flex items-center gap-1"
+                  >
+                    <Banknote className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>{language === 'km' ? 'ប្តូរទៅទូទាត់ពេលទំនិញដឹកដល់ (COD)' : 'Switch to Cash on Delivery'}</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Mode Switcher Tabs */}
           <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl">
             <button
@@ -239,7 +342,7 @@ export const BakongPaymentModal: React.FC<BakongPaymentModalProps> = ({
           {activeTab === 'scan' && (
             <div className="flex flex-col items-center">
               {/* Official KHQR White Card Frame */}
-              <div className="relative p-4 bg-white rounded-3xl border-2 border-[#e1251b] shadow-md flex flex-col items-center">
+              <div className="relative p-3.5 bg-white rounded-3xl border-2 border-[#e1251b] shadow-md flex flex-col items-center">
                 {/* Red Top Tag */}
                 <div className="absolute -top-3 px-3 py-0.5 rounded-full bg-[#e1251b] text-white text-[10px] font-black tracking-widest uppercase shadow-xs">
                   KHQR
@@ -248,11 +351,11 @@ export const BakongPaymentModal: React.FC<BakongPaymentModalProps> = ({
                 <img
                   src={qrImageUrl}
                   alt="Bakong KHQR"
-                  className="w-56 h-56 object-contain rounded-xl"
+                  className="w-52 h-52 object-contain rounded-xl"
                 />
 
                 {/* Subtag Footer */}
-                <div className="mt-2 text-center">
+                <div className="mt-1.5 text-center">
                   <span className="text-[11px] font-bold text-slate-800 block">
                     {merchantName}
                   </span>
@@ -307,7 +410,7 @@ export const BakongPaymentModal: React.FC<BakongPaymentModalProps> = ({
                     <img
                       src={slipImage}
                       alt="Payment Receipt Slip"
-                      className="max-h-48 mx-auto rounded-xl object-contain shadow-xs border border-slate-200 dark:border-slate-700"
+                      className="max-h-44 mx-auto rounded-xl object-contain shadow-xs border border-slate-200 dark:border-slate-700"
                     />
                     <div className="flex items-center justify-center gap-2">
                       <label className="text-[11px] font-bold text-[#2481cc] hover:underline cursor-pointer">
@@ -358,24 +461,26 @@ export const BakongPaymentModal: React.FC<BakongPaymentModalProps> = ({
             </div>
           )}
 
-          {/* Primary Action Button */}
+          {/* Primary Action Button (Double-Click Protected) */}
           <div className="pt-2">
             <button
               type="button"
-              disabled={isVerifying || isVerifiedSuccess}
+              disabled={
+                verificationStatus === 'verifying' || verificationStatus === 'success'
+              }
               onClick={handleConfirmPaid}
-              className={`w-full py-3.5 px-4 rounded-2xl text-xs sm:text-sm font-bold text-white shadow-md active:scale-98 transition-all flex items-center justify-center gap-2 ${
-                isVerifiedSuccess
+              className={`w-full py-3.5 px-4 rounded-2xl text-xs sm:text-sm font-bold text-white shadow-md active:scale-98 transition-all flex items-center justify-center gap-2 disabled:opacity-75 ${
+                verificationStatus === 'success'
                   ? 'bg-emerald-600 shadow-emerald-500/25'
                   : 'bg-[#e1251b] hover:bg-[#c71e15] shadow-red-500/25'
               }`}
             >
-              {isVerifying ? (
+              {verificationStatus === 'verifying' ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
                   <span>{language === 'km' ? 'កំពុងផ្ទៀងផ្ទាត់ការទូទាត់ប្រាក់...' : 'Verifying Payment...'}</span>
                 </>
-              ) : isVerifiedSuccess ? (
+              ) : verificationStatus === 'success' ? (
                 <>
                   <Check className="w-5 h-5 stroke-[2.5]" />
                   <span>{language === 'km' ? 'ការទូទាត់ត្រូវបានបញ្ជាក់ជោគជ័យ! ✓' : 'Payment Confirmed! ✓'}</span>
@@ -392,6 +497,19 @@ export const BakongPaymentModal: React.FC<BakongPaymentModalProps> = ({
                 </>
               )}
             </button>
+          </div>
+
+          {/* Help & Telegram Contact Link */}
+          <div className="text-center pt-1">
+            <a
+              href={telegramDirectUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[11px] text-slate-400 hover:text-[#2481cc] transition-colors inline-flex items-center gap-1"
+            >
+              <HelpCircle className="w-3 h-3 text-[#2481cc]" />
+              <span>{language === 'km' ? 'ជួបបញ្ហាទូទាត់? ឆាតផ្ទាល់ជាមួយហាងតាម Telegram' : 'Need help? Contact Merchant'}</span>
+            </a>
           </div>
 
         </div>

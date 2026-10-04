@@ -20,6 +20,7 @@ import {
   Send,
   Truck,
   ExternalLink,
+  RefreshCw,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { Order, PaymentMethod, Vendor } from '../../types';
@@ -63,6 +64,7 @@ export const CartDrawer: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('khqr');
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
   const [isBakongModalOpen, setIsBakongModalOpen] = useState(false);
+  const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
 
   // Promo code input state
   const [couponInput, setCouponInput] = useState('');
@@ -142,34 +144,41 @@ export const CartDrawer: React.FC = () => {
 
   const handleCheckoutSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (cart.length === 0) return;
+    if (isSubmittingOrder || cart.length === 0) return;
 
-    const newOrder = createOrder({
-      customerName,
-      customerPhone,
-      customerAddress,
-      telegramUsername: '@tma_customer',
-      items: [...cart],
-      subtotal: cartSubtotal,
-      discountAmount,
-      couponCode: appliedCoupon?.code,
-      deliveryFee: 0,
-      totalAmount: finalCartTotal,
-      currency,
-      paymentMethod,
-      paymentStatus: paymentMethod === 'cod' ? 'unpaid' : 'paid',
-      status: 'pending',
-      notes,
-      createdVia: 'cart',
-    });
+    setIsSubmittingOrder(true);
+    try {
+      const newOrder = createOrder({
+        customerName,
+        customerPhone,
+        customerAddress,
+        telegramUsername: '@tma_customer',
+        items: [...cart],
+        subtotal: cartSubtotal,
+        discountAmount,
+        couponCode: appliedCoupon?.code,
+        deliveryFee: 0,
+        totalAmount: finalCartTotal,
+        currency,
+        paymentMethod,
+        paymentStatus: paymentMethod === 'cod' ? 'unpaid' : 'paid',
+        status: 'pending',
+        notes,
+        createdVia: 'cart',
+      });
 
-    setPlacedOrder(newOrder);
-    clearCart();
+      setPlacedOrder(newOrder);
+      clearCart();
 
-    if (paymentMethod === 'khqr' || paymentMethod === 'aba') {
-      setIsBakongModalOpen(true);
-    } else {
-      setStep('success');
+      if (paymentMethod === 'khqr' || paymentMethod === 'aba') {
+        setIsBakongModalOpen(true);
+      } else {
+        setStep('success');
+      }
+    } finally {
+      setTimeout(() => {
+        setIsSubmittingOrder(false);
+      }, 1000);
     }
   };
 
@@ -655,9 +664,17 @@ export const CartDrawer: React.FC = () => {
                   </button>
                   <button
                     type="submit"
-                    className="py-2.5 bg-[#2481cc] hover:bg-[#1d6fae] text-white rounded-xl text-xs font-semibold shadow-md active:scale-98"
+                    disabled={isSubmittingOrder}
+                    className="py-2.5 bg-[#2481cc] hover:bg-[#1d6fae] disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-md active:scale-98 flex items-center justify-center gap-1.5"
                   >
-                    {language === 'km' ? 'បញ្ជាក់ការកុម្ម៉ង់' : 'Confirm Order'}
+                    {isSubmittingOrder ? (
+                      <>
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        <span>{language === 'km' ? 'កំពុងដំណើរការ...' : 'Processing...'}</span>
+                      </>
+                    ) : (
+                      <span>{language === 'km' ? 'បញ្ជាក់ការកុម្ម៉ង់' : 'Confirm Order'}</span>
+                    )}
                   </button>
                 </div>
               </div>
@@ -826,6 +843,14 @@ export const CartDrawer: React.FC = () => {
           order={placedOrder}
           vendor={uniqueVendorsInOrder[0]}
           onClose={() => {
+            setIsBakongModalOpen(false);
+            setStep('success');
+          }}
+          onSwitchToCod={() => {
+            if (placedOrder) {
+              placedOrder.paymentMethod = 'cod';
+              placedOrder.paymentStatus = 'unpaid';
+            }
             setIsBakongModalOpen(false);
             setStep('success');
           }}
