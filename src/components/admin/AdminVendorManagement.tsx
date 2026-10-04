@@ -3,6 +3,7 @@ import {
   Store,
   Plus,
   Search,
+  QrCode,
   CheckCircle2,
   AlertCircle,
   Building2,
@@ -106,6 +107,7 @@ export const AdminVendorManagement: React.FC<AdminVendorManagementProps> = ({ on
   const [bankName, setBankName] = useState('ABA Bank');
   const [bankAccountName, setBankAccountName] = useState('');
   const [bankAccountNumber, setBankAccountNumber] = useState('');
+  const [bakongId, setBakongId] = useState('');
   const [isVerified, setIsVerified] = useState(true);
 
   const generateRandomPin = () => {
@@ -173,6 +175,7 @@ export const AdminVendorManagement: React.FC<AdminVendorManagementProps> = ({ on
     setBankName(vendor.bankName);
     setBankAccountName(vendor.bankAccountName);
     setBankAccountNumber(vendor.bankAccountNumber);
+    setBakongId(vendor.bakongId || '');
     setIsVerified(vendor.isVerified);
 
     // Look up linked admin user
@@ -214,6 +217,7 @@ export const AdminVendorManagement: React.FC<AdminVendorManagementProps> = ({ on
       bankName: bankName.trim(),
       bankAccountName: bankAccountName.trim().toUpperCase(),
       bankAccountNumber: bankAccountNumber.trim(),
+      bakongId: bakongId.trim(),
       isVerified,
       rating: editingVendor ? editingVendor.rating : 5.0,
       reviewCount: editingVendor ? editingVendor.reviewCount : 0,
@@ -918,6 +922,22 @@ export const AdminVendorManagement: React.FC<AdminVendorManagementProps> = ({ on
                       onChange={(e) => setBankAccountNumber(e.target.value)}
                       placeholder="000 123 456"
                       className="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-mono"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center justify-between">
+                      <span className="flex items-center gap-1 text-[#e1251b]">
+                        <QrCode className="w-3.5 h-3.5" />
+                        <span>Bakong ID / KHQR (សម្រាប់បង្កើត Dynamic QR Code ទទួលលុយផ្ទាល់)</span>
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-normal">ឧ. kaka_gadgets@aba ឬ 012345678@aclb</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={bakongId}
+                      onChange={(e) => setBakongId(e.target.value)}
+                      placeholder="e.g. kaka_gadgets@aba, 012345678@aclb"
+                      className="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-xs focus:border-[#e1251b] focus:outline-none"
                     />
                   </div>
                 </div>

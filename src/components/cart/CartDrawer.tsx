@@ -25,6 +25,7 @@ import { useApp } from '../../context/AppContext';
 import { Order, PaymentMethod, Vendor } from '../../types';
 import { EXCHANGE_RATE_KHR } from '../../data/mockData';
 import { ReceiptModal } from '../orders/ReceiptModal';
+import { BakongPaymentModal } from './BakongPaymentModal';
 
 export const CartDrawer: React.FC = () => {
   const {
@@ -61,6 +62,7 @@ export const CartDrawer: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('khqr');
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
+  const [isBakongModalOpen, setIsBakongModalOpen] = useState(false);
 
   // Promo code input state
   const [couponInput, setCouponInput] = useState('');
@@ -163,7 +165,12 @@ export const CartDrawer: React.FC = () => {
 
     setPlacedOrder(newOrder);
     clearCart();
-    setStep('success');
+
+    if (paymentMethod === 'khqr' || paymentMethod === 'aba') {
+      setIsBakongModalOpen(true);
+    } else {
+      setStep('success');
+    }
   };
 
   const handleClose = () => {
@@ -750,6 +757,20 @@ export const CartDrawer: React.FC = () => {
                   </span>
                 </button>
 
+                {/* View Bakong KHQR Again Button */}
+                {(placedOrder.paymentMethod === 'khqr' || placedOrder.paymentMethod === 'aba') && (
+                  <button
+                    type="button"
+                    onClick={() => setIsBakongModalOpen(true)}
+                    className="w-full py-2.5 px-3 bg-red-50 hover:bg-red-100 dark:bg-red-950/60 dark:hover:bg-red-900/60 border border-red-200 dark:border-red-800 text-[#e1251b] dark:text-rose-300 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-2xs transition-all active:scale-98"
+                  >
+                    <QrCode className="w-4 h-4 text-[#e1251b]" />
+                    <span>
+                      {language === 'km' ? '📱 បើកមើល Bakong KHQR ម្តងទៀត' : 'View Bakong KHQR Again'}
+                    </span>
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={() => setIsReceiptOpen(true)}
@@ -795,6 +816,27 @@ export const CartDrawer: React.FC = () => {
         <ReceiptModal
           order={placedOrder}
           onClose={() => setIsReceiptOpen(false)}
+        />
+      )}
+
+      {/* Official Bakong KHQR Payment Screen */}
+      {isBakongModalOpen && placedOrder && (
+        <BakongPaymentModal
+          isOpen={isBakongModalOpen}
+          order={placedOrder}
+          vendor={uniqueVendorsInOrder[0]}
+          onClose={() => {
+            setIsBakongModalOpen(false);
+            setStep('success');
+          }}
+          onPaymentSuccess={(slipImage) => {
+            if (slipImage && placedOrder) {
+              placedOrder.receiptImage = slipImage;
+              placedOrder.paymentStatus = 'paid';
+            }
+            setIsBakongModalOpen(false);
+            setStep('success');
+          }}
         />
       )}
     </>

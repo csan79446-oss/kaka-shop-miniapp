@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { Product } from '../../types';
+import { generateKhqrString, getKhqrQrImageUrl } from '../../utils/khqr';
 
 export const LiveChatOrder: React.FC = () => {
   const {
@@ -459,37 +460,33 @@ export const LiveChatOrder: React.FC = () => {
                       </span>
                     </div>
 
-                    {/* QR Code Graphics Simulation */}
-                    <div className="my-2.5 p-3 bg-white rounded-lg border border-slate-200 flex flex-col items-center">
-                      <div className="w-36 h-36 border-4 border-[#d61c28] p-1 rounded-lg flex flex-col items-center justify-center bg-white relative">
-                        {/* Red Bakong Top Bar */}
-                        <div className="w-full bg-[#d61c28] text-white text-[9px] font-bold py-0.5 text-center tracking-widest uppercase mb-1 rounded-xs">
-                          KHQR
-                        </div>
-                        {/* QR pattern simulation */}
-                        <div className="grid grid-cols-5 gap-1.5 p-1">
-                          <div className="w-5 h-5 bg-black rounded-xs"></div>
-                          <div className="w-5 h-5 bg-slate-300 rounded-xs"></div>
-                          <div className="w-5 h-5 bg-black rounded-xs"></div>
-                          <div className="w-5 h-5 bg-slate-400 rounded-xs"></div>
-                          <div className="w-5 h-5 bg-black rounded-xs"></div>
-                          <div className="w-5 h-5 bg-slate-300 rounded-xs"></div>
-                          <div className="w-5 h-5 bg-black rounded-xs"></div>
-                          <div className="w-5 h-5 bg-black rounded-xs"></div>
-                          <div className="w-5 h-5 bg-slate-300 rounded-xs"></div>
-                          <div className="w-5 h-5 bg-black rounded-xs"></div>
-                        </div>
-                        <div className="text-[9px] font-mono font-bold text-slate-800 mt-1">
-                          KAKA SHOP STORE
-                        </div>
+                    {/* Official KHQR Code Image */}
+                    <div className="my-2.5 p-3 bg-white rounded-2xl border-2 border-[#d61c28] flex flex-col items-center shadow-xs">
+                      <div className="w-full bg-[#d61c28] text-white text-[10px] font-black py-0.5 text-center tracking-widest uppercase mb-1.5 rounded-md">
+                        KHQR OFFICIAL
                       </div>
 
+                      <img
+                        src={getKhqrQrImageUrl(
+                          generateKhqrString({
+                            bakongId: 'kaka_gadgets@aba',
+                            merchantName: 'Phsar24 Store',
+                            amount: msg.orderAttachment.totalAmount || 0,
+                            currency: 'USD',
+                            billNumber: msg.orderAttachment.orderNumber || '0000',
+                          }),
+                          240
+                        )}
+                        alt="Bakong KHQR"
+                        className="w-44 h-44 object-contain rounded-lg"
+                      />
+
                       <div className="mt-2 text-center">
-                        <div className="text-xs font-bold text-slate-900">
+                        <div className="text-sm font-bold text-slate-900 font-mono">
                           {formatPrice(msg.orderAttachment.totalAmount || 0)}
                         </div>
                         <div className="text-[10px] text-slate-500 font-mono">
-                          Ref: {msg.orderAttachment.orderNumber}
+                          Ref: #{msg.orderAttachment.orderNumber}
                         </div>
                       </div>
                     </div>

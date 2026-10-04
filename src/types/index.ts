@@ -35,6 +35,7 @@ export interface Vendor {
   bankName: string;
   bankAccountName: string;
   bankAccountNumber: string;
+  bakongId?: string;
   khqrImage?: string;
   createdAt: string;
   updatedAt: string;
