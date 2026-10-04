@@ -60,6 +60,7 @@ export const ProductCatalog: React.FC = () => {
     openProductModal,
     cart,
     setIsTrackingOpen,
+    currentAdmin,
   } = useApp();
 
   const [shareModalVendor, setShareModalVendor] = useState<Vendor | null>(null);
@@ -908,6 +909,20 @@ export const ProductCatalog: React.FC = () => {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Discreet Merchant Login entry when in dedicated storefront mode */}
+      {isDedicatedStoreMode && !currentAdmin && (
+        <div className="pt-8 pb-4 text-center">
+          <button
+            type="button"
+            onClick={() => setActiveTab('admin')}
+            className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors inline-flex items-center gap-1 font-medium"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
+            <span>{language === 'km' ? 'ច្រកចូលគ្រប់គ្រងហាង (Merchant Login)' : 'Merchant Portal Login'}</span>
+          </button>
         </div>
       )}
 

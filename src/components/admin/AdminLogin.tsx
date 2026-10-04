@@ -9,6 +9,7 @@ export const AdminLogin: React.FC = () => {
   const [pin, setPin] = useState('');
   const [username, setUsername] = useState('');
   const [error, setError] = useState(false);
+  const [showQuickSwitch, setShowQuickSwitch] = useState(false);
 
   if (isRegistering) {
     return <MerchantSelfRegistration onBackToLogin={() => setIsRegistering(false)} />;
@@ -116,64 +117,86 @@ export const AdminLogin: React.FC = () => {
           </div>
         </form>
 
-        {/* Quick Demo Role Logins */}
-        <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
-          <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            <span>
-              {language === 'km' ? 'ចូលរហ័សតាមតួនាទី (Quick Switch):' : 'Quick Role Logins:'}
-            </span>
-          </div>
-
-          <div className="space-y-2">
-            {adminUsers.map((user) => (
-              <button
-                key={user.id}
-                onClick={() => handleQuickRoleLogin(user.pin)}
-                className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-[#2481cc] dark:hover:border-[#50a7ea] bg-slate-50/50 dark:bg-slate-900/30 flex items-center justify-between transition-all group text-left"
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className="text-xl">{user.avatar}</span>
-                  <div>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#2481cc]">
-                        {user.name}
-                      </span>
-                      {user.vendorId ? (
-                        <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                          <Store className="w-2.5 h-2.5" />
-                          <span>{vendors.find((v) => v.id === user.vendorId)?.nameKh.split('(')[0].trim() || user.vendorId}</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
-                          👑 {language === 'km' ? 'គ្រប់គ្រងគ្រប់ហាងទាំងអស់' : 'All Stores Master'}
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-[10px] text-slate-400 font-mono">
-                      PIN: {user.pin} · {user.role}
-                    </div>
-                    <div className="text-[10px] text-[#2481cc] dark:text-sky-400 mt-0.5 font-medium">
-                      {user.role === 'SUPER_ADMIN'
-                        ? language === 'km'
-                          ? '👑 ម្ចាស់ផ្សារ (Marketplace Owner) - ត្រួតពិនិត្យ និងមើលការលក់បានគ្រប់ហាង'
-                          : '👑 Marketplace Super Admin - Oversees all vendors & operations'
-                        : user.role === 'STORE_MANAGER'
-                        ? language === 'km'
-                          ? '⚡ ម្ចាស់ហាង/អ្នកគ្រប់គ្រង - គ្រប់គ្រងទំនិញ និងការលក់សម្រាប់តែហាងខ្លួនឯង'
-                          : '⚡ Store Manager - Manages inventory & orders for own store only'
-                        : language === 'km'
-                        ? '👁️ បុគ្គលិកជំនួយ - សិទ្ធិមើល និងឆ្លើយតបឆាតភ្ញៀវ'
-                        : '👁️ Support Staff - View-only & customer live chat'}
-                    </div>
-                  </div>
+        {/* Quick Demo Role Logins - Hidden by default for real security & privacy */}
+        <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-center">
+          {showQuickSwitch ? (
+            <div className="text-left animate-fade-in">
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <span>
+                    {language === 'km' ? 'ចូលរហ័សតាមតួនាទី (Quick Switch):' : 'Quick Role Logins:'}
+                  </span>
                 </div>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold group-hover:bg-[#2481cc] group-hover:text-white transition-colors">
-                  {language === 'km' ? 'ចូលភ្លាម' : 'Login'}
-                </span>
-              </button>
-            ))}
-          </div>
+                <button
+                  type="button"
+                  onClick={() => setShowQuickSwitch(false)}
+                  className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 underline font-medium"
+                >
+                  {language === 'km' ? 'លាក់វិញ' : 'Hide'}
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {adminUsers.map((user) => (
+                  <button
+                    key={user.id}
+                    onClick={() => handleQuickRoleLogin(user.pin)}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-[#2481cc] dark:hover:border-[#50a7ea] bg-slate-50/50 dark:bg-slate-900/30 flex items-center justify-between transition-all group text-left"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-xl">{user.avatar}</span>
+                      <div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#2481cc]">
+                            {user.name}
+                          </span>
+                          {user.vendorId ? (
+                            <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                              <Store className="w-2.5 h-2.5" />
+                              <span>{vendors.find((v) => v.id === user.vendorId)?.nameKh.split('(')[0].trim() || user.vendorId}</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                              👑 {language === 'km' ? 'គ្រប់គ្រងគ្រប់ហាងទាំងអស់' : 'All Stores Master'}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[10px] text-slate-400 font-mono">
+                          PIN: {user.pin} · {user.role}
+                        </div>
+                        <div className="text-[10px] text-[#2481cc] dark:text-sky-400 mt-0.5 font-medium">
+                          {user.role === 'SUPER_ADMIN'
+                            ? language === 'km'
+                              ? '👑 ម្ចាស់ផ្សារ (Marketplace Owner) - ត្រួតពិនិត្យ និងមើលការលក់បានគ្រប់ហាង'
+                              : '👑 Marketplace Super Admin - Oversees all vendors & operations'
+                            : user.role === 'STORE_MANAGER'
+                            ? language === 'km'
+                              ? '⚡ ម្ចាស់ហាង/អ្នកគ្រប់គ្រង - គ្រប់គ្រងទំនិញ និងការលក់សម្រាប់តែហាងខ្លួនឯង'
+                              : '⚡ Store Manager - Manages inventory & orders for own store only'
+                            : language === 'km'
+                            ? '👁️ បុគ្គលិកជំនួយ - សិទ្ធិមើល និងឆ្លើយតបឆាតភ្ញៀវ'
+                            : '👁️ Support Staff - View-only & customer live chat'}
+                        </div>
+                      </div>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold group-hover:bg-[#2481cc] group-hover:text-white transition-colors">
+                      {language === 'km' ? 'ចូលភ្លាម' : 'Login'}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowQuickSwitch(true)}
+              className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors inline-flex items-center gap-1"
+            >
+              <Sparkles className="w-3 h-3 text-amber-500" />
+              <span>{language === 'km' ? 'ចូលរហ័សសម្រាប់អ្នកអភិវឌ្ឍន៍ (Demo Switch)' : 'Developer Demo Switch'}</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -3,9 +3,9 @@ import { ShoppingBag, MessageSquare, Receipt, ShieldCheck } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export const TelegramBottomNav: React.FC = () => {
-  const { activeTab, setActiveTab, language, unreadChatCount, currentAdmin } = useApp();
+  const { activeTab, setActiveTab, language, unreadChatCount, currentAdmin, isDedicatedStoreMode } = useApp();
 
-  const navItems = [
+  const allNavItems = [
     {
       id: 'store' as const,
       labelKh: 'ទំនិញ',
@@ -34,9 +34,17 @@ export const TelegramBottomNav: React.FC = () => {
     },
   ];
 
+  // In Dedicated Storefront mode (when customers visit through shop link ?store=...),
+  // hide the Admin tab completely from customers unless an admin has already logged in!
+  const navItems = isDedicatedStoreMode && !currentAdmin
+    ? allNavItems.filter((item) => item.id !== 'admin')
+    : allNavItems;
+
+  const gridColsClass = navItems.length === 3 ? 'grid-cols-3' : 'grid-cols-4';
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#17212b]/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 transition-colors">
-      <div className="max-w-md mx-auto grid grid-cols-4 items-center h-16 px-2">
+      <div className={`max-w-md mx-auto grid ${gridColsClass} items-center h-16 px-2`}>
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
           const Icon = item.icon;
