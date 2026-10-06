@@ -532,7 +532,7 @@ export const LiveChatOrder: React.FC = () => {
                 <span className="w-2 h-2 rounded-full bg-[#2481cc] animate-bounce"></span>
               </div>
               <span className="text-[11px] text-slate-400 font-medium">
-                {language === 'km' ? 'KAKA Shop កំពុងឆ្លើយតប...' : 'KAKA Support is typing...'}
+                {language === 'km' ? `${chatBrandName} កំពុងឆ្លើយតប...` : `${chatBrandName} is typing...`}
               </span>
             </div>
           </div>
