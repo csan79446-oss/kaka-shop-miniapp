@@ -16,6 +16,7 @@ import {
   FileCheck,
   Share2,
   Check,
+  KeyRound,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { Vendor } from '../../types';
@@ -32,6 +33,7 @@ import { AdminStoreSettings } from './AdminStoreSettings';
 import { AdminCertificateManagement } from './AdminCertificateManagement';
 import { AdminVendorManagement } from './AdminVendorManagement';
 import { StoreShareModal } from './StoreShareModal';
+import { ChangePinModal } from './ChangePinModal';
 
 export const AdminPortal: React.FC = () => {
   const {
@@ -46,6 +48,7 @@ export const AdminPortal: React.FC = () => {
 
   const [shareVendorModal, setShareVendorModal] = useState<Vendor | null>(null);
   const [copiedMarketplaceLink, setCopiedMarketplaceLink] = useState(false);
+  const [isChangePinModalOpen, setIsChangePinModalOpen] = useState(false);
 
   const handleShareMarketplace = () => {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://t.me/phsar24_bot/app';
@@ -353,6 +356,16 @@ export const AdminPortal: React.FC = () => {
             </button>
           )}
 
+          {/* ប្តូរលេខសម្ងាត់ PIN (Change Security PIN) */}
+          <button
+            onClick={() => setIsChangePinModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800 text-xs font-bold text-purple-700 dark:text-purple-300 transition-colors shadow-2xs"
+            title={language === 'km' ? 'ប្តូរលេខកូដសម្ងាត់ PIN' : 'Change Security PIN'}
+          >
+            <KeyRound className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+            <span>{language === 'km' ? 'ប្តូរ PIN' : 'Change PIN'}</span>
+          </button>
+
           <button
             onClick={logoutAdmin}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 text-xs font-semibold text-slate-600 dark:text-slate-300 transition-colors"
@@ -529,6 +542,12 @@ export const AdminPortal: React.FC = () => {
           vendor={shareVendorModal}
           isOpen={!!shareVendorModal}
           onClose={() => setShareVendorModal(null)}
+        />
+      )}
+      {isChangePinModalOpen && (
+        <ChangePinModal
+          isOpen={isChangePinModalOpen}
+          onClose={() => setIsChangePinModalOpen(false)}
         />
       )}
     </div>

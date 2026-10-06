@@ -222,6 +222,14 @@ export const AdminRoleManagement: React.FC = () => {
               <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
                 <button
                   onClick={() => openEditModal(user)}
+                  className="px-2.5 py-1 text-xs rounded-lg border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 flex items-center gap-1 font-semibold"
+                  title="ប្តូរលេខកូដសម្ងាត់ PIN"
+                >
+                  <KeyRound className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                  <span>{language === 'km' ? 'ប្តូរ PIN' : 'Change PIN'}</span>
+                </button>
+                <button
+                  onClick={() => openEditModal(user)}
                   className="px-2.5 py-1 text-xs rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1"
                 >
                   <Edit2 className="w-3 h-3" />
