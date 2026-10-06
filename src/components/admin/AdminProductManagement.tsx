@@ -16,11 +16,15 @@ import {
   Film,
   Play,
   Store,
+  Cloud,
+  RefreshCw,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { PRODUCT_IMAGE_PRESETS } from '../../data/mockData';
 import { Product } from '../../types';
 import { RbacNoticeBanner } from './RbacNoticeBanner';
+import { uploadToR2 } from '../../utils/r2Upload';
+import { CloudflareR2Modal } from './CloudflareR2Modal';
 
 export const AdminProductManagement: React.FC = () => {
   const {
@@ -45,6 +49,9 @@ export const AdminProductManagement: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
   const [productVendorId, setProductVendorId] = useState('vendor-01');
+  const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [uploadProgressMsg, setUploadProgressMsg] = useState('');
 
   // Form states
   const [nameKh, setNameKh] = useState('');
@@ -149,41 +156,53 @@ export const AdminProductManagement: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setImage(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
+      setIsUploadingMedia(true);
+      setUploadProgressMsg(
+        language === 'km' ? 'កំពុង Upload រូបភាពទៅកាន់ Cloudflare R2...' : 'Uploading image to Cloudflare R2...'
+      );
+      try {
+        const res = await uploadToR2(file, 'products');
+        setImage(res.url);
+        setCustomImageUrl(res.url);
+      } catch (err: any) {
+        console.error('Image upload failed:', err);
+      } finally {
+        setIsUploadingMedia(false);
+        setUploadProgressMsg('');
+      }
     }
   };
 
-  const handleVideoFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVideoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // 50MB check
-      if (file.size > 50 * 1024 * 1024) {
+      if (file.size > 100 * 1024 * 1024) {
         setVideoError(
           language === 'km'
-            ? 'ទំហំវីដេអូធំជាង 50MB! សូមជ្រើសរើសវីដេអូខ្លីជាងនេះ ឬប្រើ Video URL'
-            : 'Video file exceeds 50MB limit! Please choose a smaller file or use Video URL'
+            ? 'ទំហំវីដេអូធំជាង 100MB! សូមជ្រើសរើសវីដេអូខ្លីជាងនេះ ឬប្រើ Video URL'
+            : 'Video file exceeds 100MB limit! Please choose a smaller file or use Video URL'
         );
         return;
       }
       setVideoError('');
       setVideoFileName(file.name);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setUploadedVideo(reader.result);
-          setVideoUrl('');
-        }
-      };
-      reader.readAsDataURL(file);
+      setIsUploadingMedia(true);
+      setUploadProgressMsg(
+        language === 'km' ? 'កំពុង Upload វីដេអូទៅកាន់ Cloudflare R2...' : 'Uploading video to Cloudflare R2...'
+      );
+      try {
+        const res = await uploadToR2(file, 'videos');
+        setUploadedVideo(res.url);
+        setVideoUrl(res.url);
+      } catch (err: any) {
+        console.error('Video upload failed:', err);
+      } finally {
+        setIsUploadingMedia(false);
+        setUploadProgressMsg('');
+      }
     }
   };
 
@@ -266,6 +285,18 @@ export const AdminProductManagement: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Cloudflare R2 Storage Manager */}
+          <button
+            type="button"
+            onClick={() => setIsR2ModalOpen(true)}
+            className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-[#f38020]/10 hover:bg-[#f38020]/20 text-[#f38020] border border-[#f38020]/30 rounded-xl text-xs sm:text-sm font-semibold shadow-2xs active:scale-98 transition-all shrink-0"
+            title="Cloudflare R2 Object Storage ($0 Egress Bandwidth)"
+          >
+            <Cloud className="w-4 h-4 text-[#f38020]" />
+            <span className="hidden sm:inline">Cloudflare R2</span>
+            <span className="sm:hidden">R2</span>
+          </button>
+
           {/* Export Inventory CSV */}
           <button
             onClick={exportInventoryCsv}
@@ -725,17 +756,26 @@ export const AdminProductManagement: React.FC = () => {
                     className="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none"
                   />
 
-                  <label className="flex items-center justify-center gap-1.5 px-3 py-1.5 border border-dashed border-slate-300 dark:border-slate-700 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 text-xs text-slate-600 dark:text-slate-300">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>{language === 'km' ? 'ផ្ទុកឡើងរូបភាព' : 'Upload Image'}</span>
+                  <label className="flex items-center justify-center gap-1.5 px-3 py-1.5 border border-dashed border-[#f38020]/40 dark:border-[#f38020]/40 bg-[#f38020]/5 hover:bg-[#f38020]/10 rounded-xl cursor-pointer text-xs text-[#d66f19] dark:text-[#f38020] transition-colors">
+                    <Cloud className="w-3.5 h-3.5 text-[#f38020]" />
+                    <span>{language === 'km' ? 'ផ្ទុកឡើង R2 Storage' : 'Upload to Cloudflare R2'}</span>
                     <input
                       type="file"
                       accept="image/*"
                       onChange={handleImageFileUpload}
+                      disabled={isUploadingMedia}
                       className="hidden"
                     />
                   </label>
                 </div>
+
+                {/* Media Upload Progress Indicator */}
+                {isUploadingMedia && (
+                  <div className="mt-2 p-2.5 rounded-xl bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-900/60 flex items-center gap-2 text-xs text-orange-700 dark:text-orange-300 animate-pulse">
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#f38020]" />
+                    <span className="font-semibold">{uploadProgressMsg}</span>
+                  </div>
+                )}
               </div>
 
               {/* Product Video Showcase (Upload or Link) */}
@@ -875,26 +915,29 @@ export const AdminProductManagement: React.FC = () => {
                 ) : (
                   /* File upload mode */
                   <div className="space-y-2">
-                    <label className="flex flex-col items-center justify-center gap-2 p-4 border-2 border-dashed border-sky-300 dark:border-sky-800 rounded-2xl cursor-pointer hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all text-center">
-                      <div className="w-10 h-10 rounded-xl bg-[#2481cc]/10 text-[#2481cc] flex items-center justify-center">
-                        <Upload className="w-5 h-5" />
+                    <label className="flex flex-col items-center justify-center gap-2 p-4 border-2 border-dashed border-[#f38020]/40 dark:border-[#f38020]/40 rounded-2xl cursor-pointer hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all text-center">
+                      <div className="w-10 h-10 rounded-xl bg-[#f38020]/10 text-[#f38020] flex items-center justify-center">
+                        <Cloud className="w-5 h-5" />
                       </div>
                       <div>
                         <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                           {videoFileName
                             ? `✓ បានជ្រើសរើស៖ ${videoFileName}`
                             : language === 'km'
-                            ? 'ចុចដើម្បីជ្រើសរើស File វីដេអូ (MP4 / WebM / QuickTime)'
-                            : 'Click to select video file (MP4, WebM, MOV)'}
+                            ? 'ចុចដើម្បីផ្ទុកឡើងវីដេអូទៅកាន់ Cloudflare R2'
+                            : 'Upload Video to Cloudflare R2 ($0 Egress)'}
                         </p>
                         <p className="text-[10px] text-slate-400 mt-0.5">
-                          {language === 'km' ? 'ទំហំល្អបំផុតក្រោម 25MB - 50MB' : 'Max size 50MB, recommended under 25MB'}
+                          {language === 'km'
+                            ? 'ផ្ទុកវីដេអូបានរហូតដល់ 100MB និងចាក់បានលឿនតាម Edge CDN'
+                            : 'Supports up to 100MB MP4/WebM with fast edge CDN streaming'}
                         </p>
                       </div>
                       <input
                         type="file"
                         accept="video/mp4,video/webm,video/quicktime,video/*"
                         onChange={handleVideoFileUpload}
+                        disabled={isUploadingMedia}
                         className="hidden"
                       />
                     </label>
@@ -1013,6 +1056,14 @@ export const AdminProductManagement: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Cloudflare R2 Storage Manager Modal */}
+      {isR2ModalOpen && (
+        <CloudflareR2Modal
+          isOpen={isR2ModalOpen}
+          onClose={() => setIsR2ModalOpen(false)}
+        />
       )}
     </div>
   );

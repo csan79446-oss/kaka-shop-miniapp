@@ -1,15 +1,19 @@
 import express from 'express';
 import { createServer as createViteServer } from 'vite';
 import path from 'path';
+import crypto from 'crypto';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: '60mb' }));
+app.use(express.urlencoded({ limit: '60mb', extended: true }));
 
 // Initialize Gemini SDK with User-Agent header as required
 const apiKey = process.env.GEMINI_API_KEY;
@@ -53,6 +57,152 @@ app.post('/api/telegram/notify-order', async (req, res) => {
   } catch (error: any) {
     console.error('Telegram Bot Notification Error:', error);
     return res.status(500).json({ error: error.message || 'Failed to send notification' });
+  }
+});
+
+// ==========================================
+// CLOUDFLARE R2 OBJECT STORAGE API ($0 Egress)
+// ==========================================
+function getR2Client(): { client: S3Client; bucket: string; publicDomain: string } | null {
+  const accountId = process.env.R2_ACCOUNT_ID;
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+  const bucket = process.env.R2_BUCKET_NAME || 'phsar24-media';
+  const publicDomain = (process.env.R2_PUBLIC_DOMAIN || '').replace(/\/$/, '');
+
+  if (!accountId || !accessKeyId || !secretAccessKey) {
+    return null;
+  }
+
+  const client = new S3Client({
+    region: 'auto',
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
+  });
+
+  return { client, bucket, publicDomain };
+}
+
+// Check Cloudflare R2 connection & settings status
+app.get('/api/r2/status', (_req, res) => {
+  const r2 = getR2Client();
+  const accountId = process.env.R2_ACCOUNT_ID;
+  const isConfigured = Boolean(r2);
+
+  return res.json({
+    configured: isConfigured,
+    provider: 'cloudflare_r2',
+    bucket: process.env.R2_BUCKET_NAME || 'phsar24-media',
+    publicDomain: process.env.R2_PUBLIC_DOMAIN || 'https://pub-demo.r2.dev',
+    accountIdMasked: accountId ? `${accountId.slice(0, 4)}...${accountId.slice(-4)}` : null,
+    message: isConfigured
+      ? 'Cloudflare R2 is connected & active with $0 egress bandwidth fees.'
+      : 'Cloudflare R2 is ready. Add R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY to .env for production storage.',
+  });
+});
+
+// Upload media file to Cloudflare R2 with automatic fallback
+app.post('/api/r2/upload', async (req, res) => {
+  try {
+    const { filename, contentType = 'image/jpeg', data, folder = 'products' } = req.body;
+    if (!data) {
+      return res.status(400).json({ error: 'Missing file data payload' });
+    }
+
+    // Parse base64 or binary data
+    let buffer: Buffer;
+    if (typeof data === 'string' && data.startsWith('data:')) {
+      const base64Part = data.split(',')[1];
+      buffer = Buffer.from(base64Part, 'base64');
+    } else if (typeof data === 'string') {
+      buffer = Buffer.from(data, 'base64');
+    } else {
+      buffer = Buffer.from(data);
+    }
+
+    // Generate unique key: folder/timestamp-random-name.ext
+    const ext = path.extname(filename || '') || (contentType.includes('video') ? '.mp4' : '.jpg');
+    const safeBaseName = (filename || 'file').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 25);
+    const uniqueKey = `${folder}/${Date.now()}-${crypto.randomBytes(3).toString('hex')}-${safeBaseName}${ext}`;
+
+    const r2 = getR2Client();
+
+    // If R2 credentials not provided in .env yet, return seamless data URI / mock CDN url
+    if (!r2) {
+      const fallbackUrl = data.startsWith('data:') ? data : `data:${contentType};base64,${data}`;
+      return res.json({
+        success: true,
+        mode: 'fallback_ready',
+        url: fallbackUrl,
+        key: uniqueKey,
+        size: buffer.length,
+        message: 'Saved to local buffer. Configure Cloudflare R2 credentials to stream live to R2 CDN.',
+      });
+    }
+
+    // Live Upload to Cloudflare R2 Bucket
+    const command = new PutObjectCommand({
+      Bucket: r2.bucket,
+      Key: uniqueKey,
+      Body: buffer,
+      ContentType: contentType,
+    });
+
+    await r2.client.send(command);
+
+    const publicUrl = r2.publicDomain
+      ? `${r2.publicDomain}/${uniqueKey}`
+      : `https://${r2.bucket}.r2.dev/${uniqueKey}`;
+
+    return res.json({
+      success: true,
+      mode: 'r2_live',
+      url: publicUrl,
+      key: uniqueKey,
+      size: buffer.length,
+      bucket: r2.bucket,
+    });
+  } catch (err: any) {
+    console.error('Cloudflare R2 Upload Error:', err);
+    return res.status(500).json({ error: err.message || 'Failed to upload to Cloudflare R2' });
+  }
+});
+
+// Generate Presigned Upload URL for large direct browser-to-R2 video uploads
+app.post('/api/r2/presigned-url', async (req, res) => {
+  try {
+    const { filename, contentType = 'video/mp4', folder = 'videos' } = req.body;
+    const r2 = getR2Client();
+    if (!r2) {
+      return res.status(400).json({
+        error: 'Cloudflare R2 credentials not configured. Please add R2 credentials to .env',
+      });
+    }
+
+    const ext = path.extname(filename || '') || '.mp4';
+    const uniqueKey = `${folder}/${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`;
+
+    const command = new PutObjectCommand({
+      Bucket: r2.bucket,
+      Key: uniqueKey,
+      ContentType: contentType,
+    });
+
+    const uploadUrl = await getSignedUrl(r2.client, command, { expiresIn: 3600 });
+    const publicUrl = r2.publicDomain
+      ? `${r2.publicDomain}/${uniqueKey}`
+      : `https://${r2.bucket}.r2.dev/${uniqueKey}`;
+
+    return res.json({
+      uploadUrl,
+      publicUrl,
+      key: uniqueKey,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Failed to generate presigned URL' });
   }
 });
 
