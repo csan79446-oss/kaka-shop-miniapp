@@ -42,6 +42,7 @@ export const AdminCertificateManagement: React.FC = () => {
   const [previewLicenseId, setPreviewLicenseId] = useState<string | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [deletingLicense, setDeletingLicense] = useState<MedicalLicense | null>(null);
 
   // Form State
   const [titleKh, setTitleKh] = useState('');
@@ -174,18 +175,6 @@ export const AdminCertificateManagement: React.FC = () => {
     }
 
     setIsModalOpen(false);
-  };
-
-  const handleDelete = (id: string, nameKh: string) => {
-    if (
-      window.confirm(
-        language === 'km'
-          ? `តើអ្នកពិតជាចង់លុបឯកសារ "${nameKh}" នេះមែនទេ?`
-          : `Are you sure you want to delete license "${nameKh}"?`
-      )
-    ) {
-      deleteLicense(id);
-    }
   };
 
   const handleCopy = (text: string, id: string) => {
@@ -465,7 +454,7 @@ export const AdminCertificateManagement: React.FC = () => {
                       </button>
 
                       <button
-                        onClick={() => handleDelete(lic.id, lic.titleKh)}
+                        onClick={() => setDeletingLicense(lic)}
                         className="p-1.5 rounded-xl border border-rose-200 dark:border-rose-900/50 text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-colors"
                         title="លុប / Delete"
                       >
@@ -751,6 +740,56 @@ export const AdminCertificateManagement: React.FC = () => {
         onClose={() => setIsPreviewOpen(false)}
         initialLicenseId={previewLicenseId || undefined}
       />
+
+      {/* Delete License In-App Confirmation Modal */}
+      {deletingLicense && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white dark:bg-[#17212b] rounded-3xl p-5 sm:p-6 max-w-sm w-full shadow-2xl border border-slate-200 dark:border-slate-800 text-center animate-scale space-y-3">
+            <div className="w-14 h-14 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 flex items-center justify-center mx-auto shadow-inner">
+              <Trash2 className="w-7 h-7" />
+            </div>
+
+            <h4 className="font-extrabold text-base text-slate-900 dark:text-white">
+              {language === 'km' ? 'បញ្ជាក់ការលុបឯកសារ' : 'Confirm Delete License'}
+            </h4>
+
+            <div className="p-3 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs text-left">
+              <span className="font-bold text-slate-900 dark:text-white block text-sm">
+                {deletingLicense.titleKh}
+              </span>
+              <span className="text-[11px] text-slate-500 block mt-0.5 font-mono">
+                {deletingLicense.licenseNumber}
+              </span>
+            </div>
+
+            <p className="text-xs text-rose-600 dark:text-rose-400 leading-relaxed font-medium">
+              {language === 'km'
+                ? '⚠️ តើលោកអ្នកប្រាកដជាចង់លុបឯកសារអាជ្ញាប័ណ្ណនេះមែនទេ?'
+                : '⚠️ Are you sure you want to delete this official license/permit document?'}
+            </p>
+
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeletingLicense(null)}
+                className="py-2.5 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                {language === 'km' ? 'ទេ, ត្រឡប់ក្រោយ' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  deleteLicense(deletingLicense.id);
+                  setDeletingLicense(null);
+                }}
+                className="py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-md active:scale-98 transition-all"
+              >
+                {language === 'km' ? 'យល់ព្រមលុប' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

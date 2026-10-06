@@ -801,11 +801,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!v) return;
 
     const nextStatus: Vendor['status'] = v.status === 'active' ? 'suspended' : 'active';
-    setVendors((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, status: nextStatus, updatedAt: new Date().toISOString() } : item
-      )
-    );
+    const updatedVendor = { ...v, status: nextStatus, updatedAt: new Date().toISOString() };
+    const updatedVendors = vendors.map((item) => (item.id === id ? updatedVendor : item));
+    setVendors(updatedVendors);
+    saveStoredVendors(updatedVendors);
+    syncVendorToCloud(updatedVendor);
 
     logAuditAction(
       'VENDOR_STATUS_CHANGE',
@@ -824,11 +824,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!v) return;
 
     const nextVerified = !v.isVerified;
-    setVendors((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, isVerified: nextVerified, updatedAt: new Date().toISOString() } : item
-      )
-    );
+    const updatedVendor = { ...v, isVerified: nextVerified, updatedAt: new Date().toISOString() };
+    const updatedVendors = vendors.map((item) => (item.id === id ? updatedVendor : item));
+    setVendors(updatedVendors);
+    saveStoredVendors(updatedVendors);
+    syncVendorToCloud(updatedVendor);
 
     logAuditAction(
       'VENDOR_UPDATE',

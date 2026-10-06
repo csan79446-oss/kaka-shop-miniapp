@@ -18,6 +18,7 @@ export const AdminAuditLogs: React.FC = () => {
   const { auditLogs, clearAuditLogs, currentAdmin, language } = useApp();
   const [search, setSearch] = useState('');
   const [filterAction, setFilterAction] = useState<string>('all');
+  const [isClearModalOpen, setIsClearModalOpen] = useState(false);
 
   const isSuperAdmin = currentAdmin?.role === 'SUPER_ADMIN';
 
@@ -86,11 +87,7 @@ export const AdminAuditLogs: React.FC = () => {
 
           {isSuperAdmin && auditLogs.length > 0 && (
             <button
-              onClick={() => {
-                if (window.confirm(language === 'km' ? 'តើអ្នកប្រាកដជាចង់សម្អាតកំណត់ត្រាទាំងអស់?' : 'Clear all audit logs?')) {
-                  clearAuditLogs();
-                }
-              }}
+              onClick={() => setIsClearModalOpen(true)}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-rose-200 dark:border-rose-900/40 text-xs font-semibold"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -191,6 +188,47 @@ export const AdminAuditLogs: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* Clear Logs In-App Confirmation Modal */}
+      {isClearModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white dark:bg-[#17212b] rounded-3xl p-5 sm:p-6 max-w-sm w-full shadow-2xl border border-slate-200 dark:border-slate-800 text-center animate-scale space-y-3">
+            <div className="w-14 h-14 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 flex items-center justify-center mx-auto shadow-inner">
+              <Trash2 className="w-7 h-7" />
+            </div>
+
+            <h4 className="font-extrabold text-base text-slate-900 dark:text-white">
+              {language === 'km' ? 'បញ្ជាក់ការសម្អាតកំណត់ត្រា' : 'Confirm Clear Audit Logs'}
+            </h4>
+
+            <p className="text-xs text-rose-600 dark:text-rose-400 leading-relaxed font-medium">
+              {language === 'km'
+                ? '⚠️ តើលោកអ្នកប្រាកដជាចង់សម្អាតកំណត់ត្រាសកម្មភាពទាំងអស់ចេញពីប្រព័ន្ធមែនទេ? សកម្មភាពនេះមិនអាចត្រឡប់ក្រោយបានឡើយ។'
+                : '⚠️ Are you sure you want to clear all system audit logs? This action cannot be undone.'}
+            </p>
+
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsClearModalOpen(false)}
+                className="py-2.5 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                {language === 'km' ? 'ទេ, ត្រឡប់ក្រោយ' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  clearAuditLogs();
+                  setIsClearModalOpen(false);
+                }}
+                className="py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-md active:scale-98 transition-all"
+              >
+                {language === 'km' ? 'យល់ព្រមសម្អាត' : 'Clear All'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
