@@ -832,17 +832,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const v = vendors.find((item) => item.id === id);
     if (!v) return;
 
-    const confirmMsg =
-      language === 'km'
-        ? `តើអ្នកពិតជាចង់លុបហាង "${v.nameKh}" ចេញពីប្រព័ន្ធផ្សារមែនទេ?`
-        : `Are you sure you want to delete vendor store "${v.nameEn}"?`;
-    if (!window.confirm(confirmMsg)) return;
-
     setVendors((prev) => prev.filter((item) => item.id !== id));
+    setProducts((prev) => prev.filter((p) => p.vendorId !== id));
 
     logAuditAction(
       'VENDOR_DELETE',
-      `បានលុបហាង "${v.nameKh}" ចេញពីផ្សារ KAKA Marketplace`,
+      `បានលុបហាង "${v.nameKh}" ចេញពីប្រព័ន្ធផ្សាររួម`,
       `Deleted vendor "${v.nameEn}" from marketplace`,
       'vendor',
       id

@@ -72,6 +72,7 @@ export const AdminVendorManagement: React.FC<AdminVendorManagementProps> = ({ on
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingVendor, setEditingVendor] = useState<Vendor | null>(null);
   const [shareVendorModal, setShareVendorModal] = useState<Vendor | null>(null);
+  const [deletingVendor, setDeletingVendor] = useState<Vendor | null>(null);
 
   // Store Manager Account Credentials State
   const [createAccount, setCreateAccount] = useState(true);
@@ -629,7 +630,7 @@ export const AdminVendorManagement: React.FC<AdminVendorManagementProps> = ({ on
                       {/* Delete Button */}
                       <button
                         type="button"
-                        onClick={() => deleteVendor(vendor.id)}
+                        onClick={() => setDeletingVendor(vendor)}
                         className="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-rose-500 hover:bg-rose-50"
                         title="លុបហាង"
                       >
@@ -1208,6 +1209,59 @@ export const AdminVendorManagement: React.FC<AdminVendorManagementProps> = ({ on
                 className="w-full py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors text-center"
               >
                 {language === 'km' ? 'បិទផ្ទាំងនេះ (Done)' : 'Close'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* In-App Delete Vendor Confirmation Dialog */}
+      {deletingVendor && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white dark:bg-[#17212b] rounded-3xl p-5 sm:p-6 max-w-sm w-full shadow-2xl border border-slate-200 dark:border-slate-800 text-center animate-scale space-y-3">
+            <div className="w-14 h-14 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 flex items-center justify-center mx-auto shadow-inner">
+              <Trash2 className="w-7 h-7" />
+            </div>
+
+            <h4 className="font-extrabold text-base text-slate-900 dark:text-white">
+              {language === 'km' ? 'បញ្ជាក់ការលុបហាង' : 'Confirm Delete Store'}
+            </h4>
+
+            <div className="p-3 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs text-left">
+              <span className="font-bold text-slate-900 dark:text-white block text-sm">
+                {deletingVendor.nameKh} ({deletingVendor.nameEn})
+              </span>
+              <span className="text-[11px] text-slate-500 block mt-0.5">
+                ម្ចាស់ហាង៖ {deletingVendor.ownerName}
+              </span>
+              <span className="text-[11px] text-slate-400 font-mono block">
+                {deletingVendor.ownerPhone} · {deletingVendor.telegramUsername}
+              </span>
+            </div>
+
+            <p className="text-xs text-rose-600 dark:text-rose-400 leading-relaxed font-medium">
+              {language === 'km'
+                ? '⚠️ ការលុបហាងនេះ នឹងលុបទំនិញទាំងអស់របស់ហាងចេញពីប្រព័ន្ធផ្សាររួម។ តើលោកអ្នកប្រាកដដែរឬទេ?'
+                : '⚠️ Deleting this store will also remove all its products from the marketplace. Are you sure?'}
+            </p>
+
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeletingVendor(null)}
+                className="py-2.5 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                {language === 'km' ? 'ទេ, ត្រឡប់ក្រោយ' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  deleteVendor(deletingVendor.id);
+                  setDeletingVendor(null);
+                }}
+                className="py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-md active:scale-98 transition-all"
+              >
+                {language === 'km' ? 'យល់ព្រមលុបហាង' : 'Delete Store'}
               </button>
             </div>
           </div>
