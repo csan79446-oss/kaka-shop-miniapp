@@ -46,7 +46,7 @@ export async function checkR2Status(): Promise<R2StatusResult> {
  */
 export async function uploadToR2(
   file: File,
-  folder: 'products' | 'videos' | 'stores' | 'receipts' = 'products'
+  folder: string = 'products'
 ): Promise<R2UploadResult> {
   // Convert File to Base64 dataURL
   const dataUrl = await new Promise<string>((resolve, reject) => {

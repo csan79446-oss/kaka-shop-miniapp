@@ -159,12 +159,15 @@ export const AdminProductManagement: React.FC = () => {
   const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const targetVendorId = currentAdmin?.vendorId || productVendorId || 'vendor-01';
       setIsUploadingMedia(true);
       setUploadProgressMsg(
-        language === 'km' ? 'កំពុង Upload រូបភាពទៅកាន់ Cloudflare R2...' : 'Uploading image to Cloudflare R2...'
+        language === 'km'
+          ? `កំពុង Upload រូបភាពចូល Folder ហាង #${targetVendorId}...`
+          : `Uploading image to store folder #${targetVendorId}...`
       );
       try {
-        const res = await uploadToR2(file, 'products');
+        const res = await uploadToR2(file, `stores/${targetVendorId}/products`);
         setImage(res.url);
         setCustomImageUrl(res.url);
       } catch (err: any) {
@@ -187,14 +190,17 @@ export const AdminProductManagement: React.FC = () => {
         );
         return;
       }
+      const targetVendorId = currentAdmin?.vendorId || productVendorId || 'vendor-01';
       setVideoError('');
       setVideoFileName(file.name);
       setIsUploadingMedia(true);
       setUploadProgressMsg(
-        language === 'km' ? 'កំពុង Upload វីដេអូទៅកាន់ Cloudflare R2...' : 'Uploading video to Cloudflare R2...'
+        language === 'km'
+          ? `កំពុង Upload វីដេអូចូល Folder ហាង #${targetVendorId}...`
+          : `Uploading video to store folder #${targetVendorId}...`
       );
       try {
-        const res = await uploadToR2(file, 'videos');
+        const res = await uploadToR2(file, `stores/${targetVendorId}/videos`);
         setUploadedVideo(res.url);
         setVideoUrl(res.url);
       } catch (err: any) {
