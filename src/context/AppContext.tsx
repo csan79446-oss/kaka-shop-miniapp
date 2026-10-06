@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import {
   AdminRole,
@@ -64,7 +64,9 @@ import {
   testFirestoreConnection,
   seedFirestoreIfEmpty,
   syncVendorToCloud,
+  deleteVendorFromCloud,
   syncProductToCloud,
+  deleteProductFromCloud,
   syncOrderToCloud,
   syncChatToCloud,
   COLLECTIONS,
@@ -294,6 +296,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedVendorId, setSelectedVendorId] = useState<string>('all');
   const [selectedAdminVendorId, setSelectedAdminVendorId] = useState<string | null>(null);
 
+  // Guards against cached snapshot race conditions on deletion
+  const deletedVendorIdsRef = useRef<Set<string>>(new Set());
+  const deletedProductIdsRef = useRef<Set<string>>(new Set());
+
   // Dedicated Storefront mode state (Parsed from URL query '?store=...' or Telegram 'startapp=store_...')
   const [dedicatedVendorSlug, setDedicatedVendorSlug] = useState<string | null>(() => {
     try {
@@ -371,8 +377,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const unsubVendors = onSnapshot(
       vendorsQuery,
       (snapshot) => {
-        if (!snapshot.empty) {
-          const cloudVendors = snapshot.docs.map((d) => d.data() as Vendor);
+        const cloudVendors = snapshot.docs
+          .map((d) => d.data() as Vendor)
+          .filter((v) => !deletedVendorIdsRef.current.has(v.id));
+        if (cloudVendors.length > 0 || snapshot.empty) {
           setVendors(cloudVendors);
         }
       },
@@ -389,8 +397,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const unsubProducts = onSnapshot(
       productsQuery,
       (snapshot) => {
-        if (!snapshot.empty) {
-          const cloudProducts = snapshot.docs.map((d) => d.data() as Product);
+        const cloudProducts = snapshot.docs
+          .map((d) => d.data() as Product)
+          .filter(
+            (p) =>
+              !deletedProductIdsRef.current.has(p.id) &&
+              !deletedVendorIdsRef.current.has(p.vendorId || '')
+          );
+        if (cloudProducts.length > 0 || snapshot.empty) {
           setProducts(cloudProducts);
         }
       },
@@ -832,8 +846,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const v = vendors.find((item) => item.id === id);
     if (!v) return;
 
-    setVendors((prev) => prev.filter((item) => item.id !== id));
-    setProducts((prev) => prev.filter((p) => p.vendorId !== id));
+    deletedVendorIdsRef.current.add(id);
+
+    // 1. Immediately delete from Firestore Cloud
+    deleteVendorFromCloud(id);
+
+    // 2. Also delete all products assigned to this vendor from Firestore Cloud
+    const vendorProds = products.filter((p) => p.vendorId === id);
+    vendorProds.forEach((p) => {
+      deletedProductIdsRef.current.add(p.id);
+      deleteProductFromCloud(p.id);
+    });
+
+    // 3. Immediately update local state & localStorage
+    const updatedVendors = vendors.filter((item) => item.id !== id);
+    setVendors(updatedVendors);
+    saveStoredVendors(updatedVendors);
+
+    const updatedProducts = products.filter((p) => p.vendorId !== id);
+    setProducts(updatedProducts);
+    saveStoredProducts(updatedProducts);
 
     logAuditAction(
       'VENDOR_DELETE',
@@ -1211,7 +1243,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const prod = products.find((p) => p.id === id);
     if (!prod) return;
 
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+    deletedProductIdsRef.current.add(id);
+
+    // 1. Delete from Firestore Cloud
+    deleteProductFromCloud(id);
+
+    // 2. Immediately update local state & localStorage
+    const updatedProducts = products.filter((p) => p.id !== id);
+    setProducts(updatedProducts);
+    saveStoredProducts(updatedProducts);
 
     logAuditAction(
       'PRODUCT_DELETE',

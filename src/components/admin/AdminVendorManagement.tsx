@@ -61,6 +61,7 @@ export const AdminVendorManagement: React.FC<AdminVendorManagementProps> = ({ on
     language,
     formatPrice,
     canManageContent,
+    selectedAdminVendorId,
     setSelectedAdminVendorId,
   } = useApp();
 
@@ -1256,7 +1257,11 @@ export const AdminVendorManagement: React.FC<AdminVendorManagementProps> = ({ on
               <button
                 type="button"
                 onClick={() => {
-                  deleteVendor(deletingVendor.id);
+                  const idToDelete = deletingVendor.id;
+                  deleteVendor(idToDelete);
+                  if (selectedAdminVendorId === idToDelete) {
+                    setSelectedAdminVendorId(null);
+                  }
                   setDeletingVendor(null);
                 }}
                 className="py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-md active:scale-98 transition-all"

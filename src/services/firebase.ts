@@ -6,6 +6,7 @@ import {
   collection,
   doc,
   setDoc,
+  deleteDoc,
   getDocs,
   onSnapshot,
   query,
@@ -149,5 +150,29 @@ export async function syncChatToCloud(chat: ChatMessage) {
     await setDoc(doc(db, COLLECTIONS.CHAT_MESSAGES, chat.id), chat, { merge: true });
   } catch (err) {
     console.warn('Error syncing chat to cloud:', err);
+  }
+}
+
+/**
+ * Delete Vendor from Firestore
+ */
+export async function deleteVendorFromCloud(vendorId: string) {
+  try {
+    await deleteDoc(doc(db, COLLECTIONS.VENDORS, vendorId));
+    console.log(`Successfully deleted vendor ${vendorId} from Firestore Cloud`);
+  } catch (err) {
+    console.warn('Error deleting vendor from cloud:', err);
+  }
+}
+
+/**
+ * Delete Product from Firestore
+ */
+export async function deleteProductFromCloud(productId: string) {
+  try {
+    await deleteDoc(doc(db, COLLECTIONS.PRODUCTS, productId));
+    console.log(`Successfully deleted product ${productId} from Firestore Cloud`);
+  } catch (err) {
+    console.warn('Error deleting product from cloud:', err);
   }
 }

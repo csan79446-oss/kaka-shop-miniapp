@@ -89,7 +89,7 @@ export const loadStoredVendors = (): Vendor[] => {
     const data = localStorage.getItem(STORAGE_KEYS.VENDORS);
     if (data) {
       const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return parsed.map((v) => {
           if (v.id === 'vendor-01' && v.nameKh && v.nameKh.includes('KAKA')) {
             return {
