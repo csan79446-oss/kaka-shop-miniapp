@@ -87,19 +87,6 @@ export const AdminAnalyticsDashboard: React.FC = () => {
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 4);
 
-  // SVG Chart data points for last 7 days simulation
-  const chartDays = [
-    { day: 'Mon', revenue: 65, orders: 3 },
-    { day: 'Tue', revenue: 95, orders: 4 },
-    { day: 'Wed', revenue: 140, orders: 6 },
-    { day: 'Thu', revenue: 110, orders: 5 },
-    { day: 'Fri', revenue: 185, orders: 8 },
-    { day: 'Sat', revenue: 230, orders: 11 },
-    { day: 'Sun (Today)', revenue: Math.max(80, totalRevenue), orders: totalOrdersCount },
-  ];
-
-  const maxChartRevenue = Math.max(...chartDays.map((d) => d.revenue), 100);
-
   return (
     <div className="space-y-5 animate-fade-in">
       {/* Real-time Indicator banner */}
@@ -234,56 +221,6 @@ export const AdminAnalyticsDashboard: React.FC = () => {
           <div className="text-[11px] text-emerald-600 font-semibold mt-1">
             <span>High conversion rate</span>
           </div>
-        </div>
-      </div>
-
-      {/* Interactive Sales Trend SVG Visual Chart */}
-      <div className="p-4 sm:p-5 bg-white dark:bg-[#17212b] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-1.5">
-              <TrendingUp className="w-4 h-4 text-[#2481cc]" />
-              <span>{language === 'km' ? 'ក្រាហ្វិកស្ថិតិលក់ដូរ ៧ ថ្ងៃចុងក្រោយ' : '7-Day Revenue Trend'}</span>
-            </h3>
-            <p className="text-[11px] text-slate-400">
-              {language === 'km'
-                ? 'តាមដានការកើនឡើងនៃចំណូល និងបរិមាណកុម្ម៉ង់'
-                : 'Daily revenue and volume growth analysis'}
-            </p>
-          </div>
-          <span className="text-xs font-semibold px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-            {language === 'km' ? 'ប្រចាំសប្តាហ៍' : 'Weekly View'}
-          </span>
-        </div>
-
-        {/* Clean SVG Bar Graph */}
-        <div className="h-44 w-full flex items-end gap-2 sm:gap-4 pt-4 border-b border-slate-100 dark:border-slate-800">
-          {chartDays.map((item, idx) => {
-            const heightPercent = Math.min(100, Math.max(15, (item.revenue / maxChartRevenue) * 100));
-
-            return (
-              <div
-                key={idx}
-                className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group"
-              >
-                {/* Tooltip on hover */}
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] bg-slate-900 text-white px-1.5 py-0.5 rounded shadow pointer-events-none whitespace-nowrap mb-1">
-                  ${item.revenue} ({item.orders} ord)
-                </div>
-
-                {/* Animated bar */}
-                <div
-                  style={{ height: `${heightPercent}%` }}
-                  className="w-full max-w-[36px] bg-gradient-to-t from-[#2481cc] to-[#50a7ea] rounded-t-lg transition-all group-hover:from-sky-500 group-hover:to-cyan-400 relative"
-                ></div>
-
-                {/* Day label */}
-                <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 truncate max-w-full">
-                  {item.day}
-                </span>
-              </div>
-            );
-          })}
         </div>
       </div>
 
