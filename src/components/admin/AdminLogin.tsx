@@ -59,7 +59,7 @@ export const AdminLogin: React.FC = () => {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="e.g. vibol.superadmin"
+                placeholder="e.g. smuntha.superadmin"
                 className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-[#2481cc]"
               />
             </div>

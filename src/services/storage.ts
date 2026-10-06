@@ -283,7 +283,19 @@ export const saveStoredOrders = (orders: Order[]) => {
 export const loadStoredAdminUsers = (): AdminUser[] => {
   try {
     const data = localStorage.getItem(STORAGE_KEYS.ADMIN_USERS);
-    if (data) return JSON.parse(data);
+    if (data) {
+      const users: AdminUser[] = JSON.parse(data);
+      return users.map((u) => {
+        if (u.id === 'admin-01' || u.role === 'SUPER_ADMIN') {
+          return {
+            ...u,
+            name: 'SMUN Tha ស្មុន ថា',
+            username: u.username === 'vibol.superadmin' ? 'smuntha.superadmin' : u.username || 'smuntha.superadmin',
+          };
+        }
+        return u;
+      });
+    }
   } catch (e) {
     console.error('Failed to load admins from storage', e);
   }
@@ -355,7 +367,17 @@ export const saveStoredChatMessages = (messages: ChatMessage[]) => {
 export const loadStoredAdminAuth = (): AdminUser | null => {
   try {
     const data = localStorage.getItem(STORAGE_KEYS.AUTH);
-    if (data) return JSON.parse(data);
+    if (data) {
+      const user: AdminUser = JSON.parse(data);
+      if (user.id === 'admin-01' || user.role === 'SUPER_ADMIN') {
+        return {
+          ...user,
+          name: 'SMUN Tha ស្មុន ថា',
+          username: user.username === 'vibol.superadmin' ? 'smuntha.superadmin' : user.username || 'smuntha.superadmin',
+        };
+      }
+      return user;
+    }
   } catch (e) {
     console.error('Failed to load admin auth', e);
   }

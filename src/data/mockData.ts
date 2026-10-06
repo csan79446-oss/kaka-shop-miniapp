@@ -590,14 +590,14 @@ export const INITIAL_PRODUCTS: Product[] = [
 export const INITIAL_ADMIN_USERS: AdminUser[] = [
   {
     id: 'admin-01',
-    name: 'សុខ វិបុល (Sok Vibol)',
-    username: 'vibol.superadmin',
+    name: 'SMUN Tha ស្មុន ថា',
+    username: 'smuntha.superadmin',
     role: 'SUPER_ADMIN',
     // Platform Super Admin / Marketplace Owner: no vendorId (controls all vendors)
     pin: '1234',
     avatar: '👑',
     active: true,
-    lastLogin: '2026-09-28T22:45:00Z'
+    lastLogin: '2026-10-06T00:00:00Z'
   },
   {
     id: 'admin-02',
@@ -717,7 +717,7 @@ export const INITIAL_AUDIT_LOGS: AuditLog[] = [
     id: 'log-001',
     timestamp: '2026-09-28T22:45:10Z',
     adminId: 'admin-01',
-    adminName: 'សុខ វិបុល (Sok Vibol)',
+    adminName: 'SMUN Tha ស្មុន ថា',
     role: 'SUPER_ADMIN',
     action: 'ADMIN_LOGIN',
     targetType: 'auth',
@@ -755,7 +755,7 @@ export const INITIAL_AUDIT_LOGS: AuditLog[] = [
     id: 'log-004',
     timestamp: '2026-09-27T16:00:00Z',
     adminId: 'admin-01',
-    adminName: 'សុខ វិបុល (Sok Vibol)',
+    adminName: 'SMUN Tha ស្មុន ថា',
     role: 'SUPER_ADMIN',
     action: 'PRODUCT_CREATE',
     targetType: 'product',
